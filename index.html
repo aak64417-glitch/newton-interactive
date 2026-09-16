@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>نيوتن التفاعلي - نسخة تجريبية</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;min-height:100vh}.app{position:relative;min-height:100vh;overflow:hidden;background:#111}.hero{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;filter:brightness(.78)}.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.05) 45%,rgba(0,0,0,.75) 82%,rgba(0,0,0,.92))}.ui{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:24px 18px 34px}.badge{align-self:center;margin-bottom:auto;margin-top:22px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);font-size:14px}.panel{background:rgba(10,10,12,.72);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.18);border-radius:24px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.35)}h1{font-size:25px;margin:0 0 5px}.sub{color:#d6d6d6;font-size:14px}.status{margin:15px 0 10px;font-size:18px;font-weight:800}.status.listen{color:#7dd3fc}.status.think{color:#fde68a}.status.speak{color:#86efac}.transcript{min-height:52px;color:#eee;line-height:1.7;font-size:16px}.hint{font-size:13px;color:#bbb;margin-top:12px;line-height:1.6}.start{width:100%;min-height:54px;margin-top:14px;border:0;border-radius:17px;font-size:18px;font-weight:800;background:#fff;color:#111}.start:active{transform:scale(.99)}.pulse{animation:pulse 1.4s infinite}@keyframes pulse{50%{transform:scale(1.01);filter:brightness(.9)}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<img class="hero" src="newton.png" alt="محاكاة تعليمية واقعية لشخصية إسحاق نيوتن داخل مختبر">
+<div class="shade"></div>
+<div class="ui">
+<div class="badge">محاكاة تعليمية لشخصية إسحاق نيوتن</div>
+<div class="panel">
+<h1>نيوتن التفاعلي</h1><div class="sub">نسخة تجريبية على الجوال — بلا مفتاح API</div>
+<div id="status" class="status">جاهز للتجربة</div>
+<div id="text" class="transcript">اضغط «ابدأ التجربة» مرة واحدة للسماح بالميكروفون، وبعدها تحدث طبيعيًا.</div>
+<button id="start" class="start">ابدأ التجربة</button>
+<div class="hint">هذه النسخة تختبر الاستماع والرد الصوتي محليًا وتعرف مجموعة محدودة من أسئلة العلوم. النسخة الذكية الكاملة ستُربط لاحقًا بخدمة الذكاء الاصطناعي.</div>
+</div>
+</div>
+</div>
+<script>
+(()=>{
+const status=document.getElementById('status'), text=document.getElementById('text'), btn=document.getElementById('start'), app=document.getElementById('app');
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, speaking=false;
+function setState(s,msg){status.className='status '+s;status.textContent=msg;app.classList.toggle('pulse',s==='listen')}
+function answer(q){const x=q.replace(/[؟?]/g,'').trim();
+ if(/جاذبي|التفاح|تسقط|السقوط/.test(x)) return 'الجاذبية قوة تجذب الأجسام نحو بعضها. ولأن كتلة الأرض كبيرة جدًا، فإنها تجذب التفاحة والأجسام نحو مركزها.';
+ if(/سرع|تسارع/.test(x)) return 'السرعة تصف مقدار تغير المسافة مع الزمن، أما التسارع فيصف مقدار تغير السرعة مع الزمن.';
+ if(/قوة|نيوتن/.test(x)) return 'القوة مؤثر يمكنه تغيير حركة الجسم، وتقاس بوحدة النيوتن.';
+ if(/قمر|مدار/.test(x)) return 'يبقى القمر في مداره لأن الجاذبية تجذبه نحو الأرض، بينما حركته الجانبية تجعله يستمر في الدوران حولها.';
+ if(/من أنت|اسمك/.test(x)) return 'أنا محاكاة تعليمية لشخصية إسحاق نيوتن، صُممت لأساعدك على استكشاف العلوم.';
+ return 'هذا سؤال جميل. في هذه النسخة التجريبية معرفتي محدودة. بعد ربط النسخة الذكية سأتمكن من مناقشة أسئلة العلوم معك بصورة أوسع.';
+}
+function speak(a){speaking=true;setState('speak','أتحدث إليك…');text.textContent=a;const u=new SpeechSynthesisUtterance(a);u.lang='ar-SA';u.rate=.88;u.pitch=.92;u.onend=()=>{speaking=false;setState('listen','أستمع إليك…');try{rec&&rec.start()}catch(e){}};speechSynthesis.cancel();speechSynthesis.speak(u)}
+function begin(){if(!SR){setState('','الميكروفون الصوتي غير مدعوم هنا');text.textContent='افتح الملف في Chrome على أندرويد. إذا استمر ذلك، سننشره عبر HTTPS لأن بعض المتصفحات لا تسمح بالميكروفون من ملف محلي.';return}
+ btn.style.display='none';rec=new SR();rec.lang='ar-SA';rec.interimResults=false;rec.continuous=false;
+ rec.onstart=()=>setState('listen','أستمع إليك…');
+ rec.onresult=e=>{const q=e.results[e.results.length-1][0].transcript;text.textContent='سمعت: «'+q+'»';setState('think','أفكر في سؤالك…');setTimeout(()=>speak(answer(q)),650)};
+ rec.onerror=e=>{if(e.error==='not-allowed'){setState('','يلزم السماح بالميكروفون');text.textContent='اسمح للموقع باستخدام الميكروفون ثم أعد فتح التجربة.'}else{setState('','تعذر الاستماع');text.textContent='حاول مرة أخرى. إذا كان الملف مفتوحًا مباشرة من الهاتف فقد نحتاج نشره على HTTPS.'}};
+ rec.onend=()=>{if(!speaking && btn.style.display==='none'){setTimeout(()=>{try{rec.start()}catch(e){}},500)}};
+ try{rec.start()}catch(e){}
+}
+btn.addEventListener('click',begin);
+})();
+</script>
+</body></html>
